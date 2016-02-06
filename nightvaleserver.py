@@ -4,6 +4,8 @@ import re
 import os.path
 import markovgen
 import textimage
+from os import curdir, sep
+
 
 PORT_NUMBER = 8080
 
@@ -33,72 +35,95 @@ class myHandler(BaseHTTPRequestHandler):
 		return
 
 	def do_GET(self):
-		word =  self.path[1:]
-		offset=word.find('?')
-		if not offset == -1:
-			word = word[:offset]
-		m = re.search(state.magic_words, word)
-		if m is not None:
-			with open('map2.png', 'rb') as f:
+		try:
+
+			staticType = False
+			if self.path.endswith(".html"):
+				mimetype='text/html'
+				staticType = True
+			if self.path.endswith(".jpg"):
+				mimetype='image/jpg'
+				staticType = True
+			if self.path.endswith(".gif"):
+				mimetype='image/gif'
+				staticType = True
+			if self.path.endswith(".js"):
+				mimetype='application/javascript'
+				staticType = True
+			if self.path.endswith(".css"):
+				mimetype='text/css'
+				staticType = True
+			if staticType:
+				#Open the static file requested and send it
+				f = open(curdir + sep + self.path) 
 				self.send_response(200)
-				self.send_header('Content-type', 'image/png')
+				self.send_header('Content-type',mimetype)
 				self.end_headers()
 				self.wfile.write(f.read())
+				f.close()
 				return
 
-		if state.triggered:
-			state.triggered = False
-			print 'untriggered'
-			imagePath = 'out/redact_'+state.triggerWord+'.jpg'
-			#if not os.path.isfile(imagePath):
-			newTxt = re.sub(state.magic_words,'[*****]',state.triggerTxt)
-			newTxt='DISREGARD PREVIOUS RESULTS. CORRECTION: . . . . . . .\n'+newTxt
-			textimage.TextImage(newTxt,imagePath)
-			with open(imagePath, 'rb') as f:
-				self.send_response(200)
-				self.send_header('Content-type', 'image/jpg')
-				self.end_headers()
-				self.wfile.write(f.read())
-				return
 
-		m = re.search('[^a-zA-z]', word)
-		if m is not None:
-			with open('Access Denied 590x332.jpg', 'rb') as f:
-				self.send_response(200)
-				self.send_header('Content-type', 'image/jpg')
-				self.end_headers()
-				self.wfile.write(f.read())
-				return
-
-		imagePath = 'out/'+word+'.jpg'
-		#if not os.path.isfile(imagePath):
-		txt = state.markov.generate_markov_text(100,word)
-		textimage.TextImage(txt,imagePath)
-
-		with open(imagePath, 'rb') as f:
-
-			m = re.search(state.magic_words, txt)
+			word =  self.path[1:]
+			offset=word.find('?')
+			if not offset == -1:
+				word = word[:offset]
+			m = re.search(state.magic_words, word)
 			if m is not None:
-				print 'triggered'
-				state.triggered = True
-				state.triggerTxt = txt
-				state.triggerWord = word
-				self.send_response(201)
-			else:
-				self.send_response(200)
+				with open('map2.png', 'rb') as f:
+					self.send_response(200)
+					self.send_header('Content-type', 'image/png')
+					self.end_headers()
+					self.wfile.write(f.read())
+					return
 
-			self.send_header('Content-type', 'image/jpg')
-			self.end_headers()
-			self.wfile.write(f.read())
+			if state.triggered:
+				state.triggered = False
+				print 'untriggered'
+				imagePath = 'out/redact_'+state.triggerWord+'.jpg'
+				#if not os.path.isfile(imagePath):
+				newTxt = re.sub(state.magic_words,'[*****]',state.triggerTxt)
+				newTxt='DISREGARD PREVIOUS RESULTS. CORRECTION: . . . . . . .\n'+newTxt
+				textimage.TextImage(newTxt,imagePath)
+				with open(imagePath, 'rb') as f:
+					self.send_response(200)
+					self.send_header('Content-type', 'image/jpg')
+					self.end_headers()
+					self.wfile.write(f.read())
+					return
 
+			m = re.search('[^a-zA-z]', word)
+			if m is not None:
+				with open('Access Denied 590x332.jpg', 'rb') as f:
+					self.send_response(200)
+					self.send_header('Content-type', 'image/jpg')
+					self.end_headers()
+					self.wfile.write(f.read())
+					return
 
+			imagePath = 'out/'+word+'.jpg'
+			#if not os.path.isfile(imagePath):
+			txt = state.markov.generate_markov_text(100,word)
+			textimage.TextImage(txt,imagePath)
 
-			return
+			with open(imagePath, 'rb') as f:
 
+				m = re.search(state.magic_words, txt)
+				if m is not None:
+					print 'triggered'
+					state.triggered = True
+					state.triggerTxt = txt
+					state.triggerWord = word
+					self.send_response(201)
+				else:
+					self.send_response(200)
 
-		#import re
-		#m = re.search('(?<=abc)def', 'abcdef')
-		#m.group(0)
+				self.send_header('Content-type', 'image/jpg')
+				self.end_headers()
+				self.wfile.write(f.read())
+				return
+		except IOError:
+			self.send_error(404,'File Not Found: %s' % self.path)
 
 
 try:
