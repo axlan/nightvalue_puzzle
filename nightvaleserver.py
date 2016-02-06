@@ -7,7 +7,7 @@ import textimage
 from os import curdir, sep
 
 
-PORT_NUMBER = 8080
+PORT_NUMBER = 1331
 
 
 class ServerState:
@@ -38,7 +38,8 @@ class myHandler(BaseHTTPRequestHandler):
 		try:
 
 			staticType = False
-			if self.path.endswith(".html"):
+			if len(self.path) < 2 or self.path.endswith(".html"):
+				self.path = '/index.html'
 				mimetype='text/html'
 				staticType = True
 			if self.path.endswith(".jpg"):
