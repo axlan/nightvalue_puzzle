@@ -41,17 +41,20 @@ class Markov(object):
 		
 		seed = random.randint(0, self.word_size-3)
 		if searchWord is not None:
+			seeds = [];
 			idx = 0
 			bestMatch = 10000
 			for word in self.words:
 				if searchWord.lower() in word.lower():
 					matchCount = abs(len(searchWord) - len(word))
-					if matchCount < bestMatch:
-						seed = idx
+					if matchCount == bestMatch:
+						seeds.append(idx)
+					elif matchCount < bestMatch:
+						seeds = [idx]
 						bestMatch = matchCount
-					if bestMatch == 0:
-						break
 				idx = idx + 1
+			if len(seeds) > 0:
+				seed = random.choice(seeds)
 
 		seed_word, next_word = self.words[seed], self.words[seed+1]
 		w1, w2 = seed_word, next_word
