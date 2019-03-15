@@ -45,6 +45,9 @@ class myHandler(BaseHTTPRequestHandler):
 			if self.path.endswith(".jpg"):
 				mimetype='image/jpg'
 				staticType = True
+			if self.path.endswith(".png"):
+				mimetype='image/png'
+				staticType = True
 			if self.path.endswith(".gif"):
 				mimetype='image/gif'
 				staticType = True
@@ -81,14 +84,14 @@ class myHandler(BaseHTTPRequestHandler):
 			if state.triggered:
 				state.triggered = False
 				print 'untriggered'
-				imagePath = 'out/redact_'+state.triggerWord+'.jpg'
+				imagePath = 'out/redact_'+state.triggerWord+'.png'
 				#if not os.path.isfile(imagePath):
 				newTxt = re.sub(state.magic_words,'[*****]',state.triggerTxt)
 				newTxt='DISREGARD PREVIOUS RESULTS. CORRECTION: . . . . . . .\n'+newTxt
 				textimage.TextImage(newTxt,imagePath)
 				with open(imagePath, 'rb') as f:
 					self.send_response(200)
-					self.send_header('Content-type', 'image/jpg')
+					self.send_header('Content-type', 'image/png')
 					self.end_headers()
 					self.wfile.write(f.read())
 					return
@@ -102,7 +105,7 @@ class myHandler(BaseHTTPRequestHandler):
 					self.wfile.write(f.read())
 					return
 
-			imagePath = 'out/'+word+'.jpg'
+			imagePath = 'out/'+word+'.png'
 			#if not os.path.isfile(imagePath):
 			txt = state.markov.generate_markov_text(100,word)
 			textimage.TextImage(txt,imagePath)
@@ -119,11 +122,12 @@ class myHandler(BaseHTTPRequestHandler):
 				else:
 					self.send_response(200)
 
-				self.send_header('Content-type', 'image/jpg')
+				self.send_header('Content-type', 'image/png')
 				self.end_headers()
 				self.wfile.write(f.read())
 				return
 		except IOError:
+			raise
 			self.send_error(404,'File Not Found: %s' % self.path)
 
 

@@ -18,5 +18,5 @@ def TextImage(txt,outfile):
 	d_usr = ImageDraw.Draw(image)
 	d_usr = d_usr.text((0,0), WordWrap(txt,10),(255,255,255), font=usr_font)
 
-	image.save(outfile, "JPEG")
+	image.save(outfile, "PNG")
 
